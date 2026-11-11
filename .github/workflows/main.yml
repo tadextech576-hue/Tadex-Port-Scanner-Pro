@@ -1,0 +1,42 @@
+name: Build Tadex APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip -o Tadex-Port-Scanner-Pro.zip -d project
+          ls -R project | head -n 100
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Debug APK
+        run: |
+          cd project
+          # find gradlew
+          find . -name "gradlew" | head -n 1
+          chmod +x ./gradlew || chmod +x */gradlew || true
+          ./gradlew assembleDebug || ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tadex-Port-Scanner-Pro-APK
+          path: project/**/app/build/outputs/apk/debug/*.apk
